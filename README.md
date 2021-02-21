@@ -8,7 +8,8 @@ The First Model predicts the bounding boxes from just the image data from the su
 
 ## Camera View:
 <p align="center"><img src="assets/surrounding.png" width="480"\></p>
-## Expecting Output:
+
+## Expected Output:
 <p align="center"><img src="assets/output.png" width="480"\></p>
 
 ## Current Status:
