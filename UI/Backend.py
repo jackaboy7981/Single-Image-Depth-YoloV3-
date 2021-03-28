@@ -88,13 +88,14 @@ for scn in nusc.scene:
             time.sleep(0.0001)
             sock.sendall(transString.encode("UTF-8")) 
             time.sleep(0.0001)
-            #print(transString,sizeString,rotationString,annotation_metadata['category_name'])
+            print(transString,sizeString,rotationString,annotation_metadata['category_name'])
 
             #receivedData = sock.recv(1024).decode("UTF-8") #receiveing data in Byte fron C#, and converting it to String
             #print(receivedData)
         
         time.sleep(0.48) #sleep 0.5 sec
-        #break #use this break while testing
+        sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
+        break #use this break while testing
     #sock.sendall("SCENE".encode("UTF-8"))
     sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
     print("one scn done")

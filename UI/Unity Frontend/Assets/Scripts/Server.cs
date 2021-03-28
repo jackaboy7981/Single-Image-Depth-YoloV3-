@@ -71,6 +71,10 @@ public class Server : MonoBehaviour
         while (running)
         {
             CheckFrameEnd();
+            if (!running)
+            {
+                break;
+            }
             ReceiveSize();
             ReceiveRotation();
             ReceiveCatogory();
