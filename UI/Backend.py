@@ -56,6 +56,8 @@ for scn in nusc.scene:
         sensor = 'LIDAR_TOP'
         lidar_top_data = nusc.get('sample_data', my_sample['data'][sensor])
         ego_pose = nusc.get('ego_pose', lidar_top_data['ego_pose_token'])
+        sock.sendall("FRAME".encode("UTF-8"))
+        first_annos_flag = True
         for annos in my_sample['anns']:
             annotation_metadata =  nusc.get('sample_annotation', annos)
             
@@ -74,6 +76,10 @@ for scn in nusc.scene:
             rotationString = ','.join(map(str, rotation)) #Converting rotation list to a string, example "0,0,0"
             
             #Converting string to Byte, and sending it to C#
+            if first_annos_flag == False:
+                sock.sendall("NOPE".encode("UTF-8"))
+            first_annos_flag = False
+            time.sleep(0.0001)
             sock.sendall(sizeString.encode("UTF-8")) 
             time.sleep(0.0001)
             sock.sendall(rotationString.encode("UTF-8")) 
@@ -83,9 +89,14 @@ for scn in nusc.scene:
             sock.sendall(transString.encode("UTF-8")) 
             time.sleep(0.0001)
             #print(transString,sizeString,rotationString,annotation_metadata['category_name'])
-            time.sleep(0.0001)
 
             #receivedData = sock.recv(1024).decode("UTF-8") #receiveing data in Byte fron C#, and converting it to String
             #print(receivedData)
+        
         time.sleep(0.48) #sleep 0.5 sec
-        break #use this break while testing
+        #break #use this break while testing
+    #sock.sendall("SCENE".encode("UTF-8"))
+    sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
+    print("one scn done")
+    break
+sock.sendall("DONE".encode("UTF-8"))

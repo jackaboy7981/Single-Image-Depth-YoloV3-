@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Globalization;
 using UnityEngine;
+using System;
 
 public class Server : MonoBehaviour
 {
@@ -21,13 +22,25 @@ public class Server : MonoBehaviour
     Vector3 Size = Vector3.zero;  //size
     string object_catogory = ""; //object type
     Quaternion rotation; //rotation
-
+    bool clear = false;
     bool running;
 
     private void Update()
     {
         if (receivedPos != Vector3.zero)
         {
+            //clear env
+            if (clear)
+            {
+                //clear function here
+                print("cleared");
+                clear = false;
+            }
+            if(!running)
+            {
+                //exit program or do whatever you like
+                print("finished");
+            }
             // you can do your things here
             print(receivedPos);
             print(Size);
@@ -57,12 +70,31 @@ public class Server : MonoBehaviour
         running = true;
         while (running)
         {
+            CheckFrameEnd();
             ReceiveSize();
             ReceiveRotation();
             ReceiveCatogory();
             ReceiveTranslation();
         }
         listener.Stop();
+    }
+
+    private void CheckFrameEnd()
+    {
+        NetworkStream nwStream = client.GetStream();
+        byte[] buffer = new byte[client.ReceiveBufferSize];
+
+        //---receiving translation Data from the Host----
+        int bytesRead = nwStream.Read(buffer, 0, client.ReceiveBufferSize); //Getting data in Bytes from Python
+        string CheckStr = Encoding.UTF8.GetString(buffer, 0, bytesRead); //Converting byte data to string
+        if(CheckStr == "FRAME")
+        {
+            clear = true;
+        }
+        if(CheckStr == "DONE")
+        {
+            running = false;
+        }
     }
 
     void ReceiveTranslation()
