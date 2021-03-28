@@ -6,7 +6,11 @@ using System.Text;
 using System.Threading;
 using System.Globalization;
 using UnityEngine;
-
+public Vector3 offsett;
+void update()
+{
+     transform.position = offsett;
+}
 public class Server : MonoBehaviour
 {
     Thread mThread;
@@ -24,12 +28,15 @@ public class Server : MonoBehaviour
 
     bool running;
 
+
     private void Update()
     {
+        
         if (receivedPos != Vector3.zero)
         {
             // you can do your things here
             print(receivedPos);
+            transform.cube = (120,0,50);
             print(Size);
             print(object_catogory);
             print(rotation);
