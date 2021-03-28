@@ -63,7 +63,7 @@ for scn in nusc.scene:
             cordinates = [annotation_metadata['translation'][i] - ego_pose['translation'][i] for i in range(3)]
             cordinates[0], cordinates[1] = rotate_around_point_lowperf(cordinates[:2], ego_yaw, origin=(0, 0))
             #cordinates = convert_to_top_corner(cordinates)
-            if cordinates[0] > 2*max_width or cordinates[0] < 0 or cordinates[1] > 2*max_length or cordinates[1] < 0:# or (self.augment and self.check_cameraregion() == 0):
+            if cordinates[0] > max_width or cordinates[0] < - max_width or cordinates[1] > max_length or cordinates[1] < -max_length:# or (self.augment and self.check_cameraregion() == 0):
                 continue
 
             rotation = [annotation_metadata['rotation'][i] - ego_pose['rotation'][i] for i in range(4)]
