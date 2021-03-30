@@ -309,7 +309,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93f092ed5ef6e424381653568778d1a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPos: {fileID: 0}
+  connectionIP: 127.0.0.1
+  connectionPort: 54955
   spawnee: {fileID: 7807643072217959632, guid: d6022f2a42e1df949aeb0aa6671792dc, type: 3}
 --- !u!1 &1012029662
 GameObject:
