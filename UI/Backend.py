@@ -1,27 +1,17 @@
+
 import socket
 import time
 import math
+from nuscenes.nuscenes import NuScenes 
 import numpy as np
 from pyquaternion import Quaternion
-import json
-
-#setting up nuscenes
-with open("data/v1.0-mini/scene.json") as f:
-  scenes = json.load(f)
-with open("data/v1.0-mini/sample.json") as f:
-  samples = json.load(f)
-with open("data/v1.0-mini/sample_data.json") as f:
-  sample_datas = json.load(f)
-with open("data/v1.0-mini/sample_annotation.json") as f:
-  sample_annotations = json.load(f)
-with open("data/v1.0-mini/ego_pose.json") as f:
-  ego_poses = json.load(f)
-
 
 #seting up socket
 host, port = "127.0.0.1", 54955
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((host, port))
+
+nusc = NuScenes(version='v1.0-mini', dataroot='data', verbose=True)
 
 max_height=5
 max_length=20
@@ -61,27 +51,16 @@ def convert_to_top_corner(point):
       point[1] = max_width - point[1]
       return point
 
-for scene in scenes:
-    token = scene['first_sample_token']
-    my_sample = {}
-    while token != '':
-        for sample in samples:
-            if sample['token'] == token:
-                my_sample = sample
+for scn in nusc.scene:
+    my_sample = nusc.get('sample', scn['first_sample_token'])
+    while my_sample['token'] != scn['last_sample_token']:
         sensor = 'LIDAR_TOP'
-        for sample_data in sample_datas:
-            if sample_data['token'] == my_sample['data'][sensor]:
-                lidar_top_data = sample_data
-                
-        for ego_pos in ego_poses:
-            if ego_pos['token'] == lidar_top_data['ego_pose_token']:
-                ego_pose = ego_pos 
+        lidar_top_data = nusc.get('sample_data', my_sample['data'][sensor])
+        ego_pose = nusc.get('ego_pose', lidar_top_data['ego_pose_token'])
         sock.sendall("FRAME".encode("UTF-8"))
         first_annos_flag = True
         for annos in my_sample['anns']:
-            for sample_annotation in sample_annotations:
-                if sample_annotation['token'] == annos:
-                    annotation_metadata =  sample_annotation
+            annotation_metadata =  nusc.get('sample_annotation', annos)
             
             ego_yaw = quaternion_yaw(ego_pose['rotation']) - math.pi/2
             cordinates = [annotation_metadata['translation'][i] - ego_pose['translation'][i] for i in range(3)]
@@ -114,7 +93,7 @@ for scene in scenes:
 
             #receivedData = sock.recv(1024).decode("UTF-8") #receiveing data in Byte fron C#, and converting it to String
             #print(receivedData)
-        token = my_sample['next']
+        
         time.sleep(0.48) #sleep 0.5 sec
         sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
         break #use this break while testing
