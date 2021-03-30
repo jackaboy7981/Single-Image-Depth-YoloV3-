@@ -60,7 +60,7 @@ for i in range(394):
     sock.sendall("FRAME".encode("UTF-8"))
     first_annos_flag = True
     for annos in samples[i]['anns']:
-        annotation_metadata =  nusc.get('sample_annotation', annos)
+        annotation_metadata =  annos
         
         ego_yaw = quaternion_yaw(ego_pose['rotation']) - math.pi/2
         cordinates = [annotation_metadata['translation'][i] - ego_pose['translation'][i] for i in range(3)]
