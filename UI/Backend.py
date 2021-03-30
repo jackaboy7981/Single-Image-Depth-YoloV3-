@@ -3,6 +3,7 @@ import time
 import math
 import numpy as np
 from pyquaternion import Quaternion
+import json
 
 #setting up nuscenes
 with open("data/v1.0-mini/scene.json") as f:
