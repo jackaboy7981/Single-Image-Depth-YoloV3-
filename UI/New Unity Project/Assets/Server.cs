@@ -19,12 +19,12 @@ public class Server : MonoBehaviour
     TcpClient client;
     
     //these are the values
-    Vector3 receivedPos = Vector3.zero; //position
-    Vector3 Size = Vector3.zero;  //size
-    string object_catogory = ""; //object type
-    Quaternion rotation; //rotation
-    bool clear = false;
-    bool running;
+    public Vector3 receivedPos = Vector3.zero; //position
+    public Vector3 Size = Vector3.zero;  //size
+    public string object_catogory = ""; //object type
+    public Quaternion rotation; //rotation
+    public bool clear = false;
+    public bool running;
  
    
     public Vector3 offsett;
@@ -32,40 +32,8 @@ public class Server : MonoBehaviour
     {
         transform.position = offsett;
     }
-
-    public class spwaner : MonoBehaviour
-        {
-        public Transform spawnPos;
-        public GameObject spawnee;
-        Server sp = new Server();
-        private void Update()
-        {
-            
-            if (sp.receivedPos != Vector3.zero)
-            {
-                //clear env
-                if (sp.clear)
-                {
-                    //clear function here
-                    print("cleared");
-                    sp.clear = false;
-                }
-                if(!sp.running)
-                {
-                    //exit program or do whatever you like
-                    print("finished");
-                }
-                // you can do your things here
-                spawnPos.position = sp.receivedPos;
-                spawnPos.rotation = sp.rotation;
-                Instantiate(spawnee,spawnPos.position,spawnPos.rotation);
-                
-                sp.receivedPos = Vector3.zero;
-            }
-        }
-                
-   
-    }
+     
+    
 
 
     
@@ -121,7 +89,7 @@ public class Server : MonoBehaviour
     }
 
     void ReceiveTranslation()
-    {
+     {
         NetworkStream nwStream = client.GetStream();
         byte[] buffer = new byte[client.ReceiveBufferSize];
 
@@ -228,3 +196,37 @@ public class Server : MonoBehaviour
         return result;
     }
 }
+public class spwaner : MonoBehaviour
+    {
+        public Transform spawnPos;
+        public GameObject spawnee;
+        Server sp = new Server();
+        private void Update()
+        {
+            
+            if (sp.receivedPos != Vector3.zero)
+            {
+                //clear env
+                if (sp.clear)
+                {
+                    //clear function here
+                    print("cleared");
+                    sp.clear = false;
+                }
+                if(!sp.running)
+                {
+                    //exit program or do whatever you like
+                    print("finished");
+                }
+               
+                // you can do your things here
+                spawnPos.position = sp.receivedPos;
+                spawnPos.rotation = sp.rotation;
+                Instantiate(spawnee,spawnPos.position,spawnPos.rotation);
+                
+                sp.receivedPos = Vector3.zero;
+            }
+        }
+                
+   
+    }
