@@ -53,7 +53,7 @@ def convert_to_top_corner(point):
 
 for scn in nusc.scene:
     my_sample = nusc.get('sample', scn['first_sample_token'])
-    while my_sample['token'] != scn['last_sample_token']:
+    while my_sample['next'] != '':
         sensor = 'LIDAR_TOP'
         lidar_top_data = nusc.get('sample_data', my_sample['data'][sensor])
         ego_pose = nusc.get('ego_pose', lidar_top_data['ego_pose_token'])
@@ -93,7 +93,7 @@ for scn in nusc.scene:
 
             #receivedData = sock.recv(1024).decode("UTF-8") #receiveing data in Byte fron C#, and converting it to String
             #print(receivedData)
-        
+        my_sample = nusc.get('sample', my_sample['next'])
         time.sleep(0.48) #sleep 0.5 sec
         sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
         break #use this break while testing
