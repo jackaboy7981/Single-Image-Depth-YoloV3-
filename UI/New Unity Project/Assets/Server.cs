@@ -14,6 +14,7 @@ public class Server : MonoBehaviour
     Thread mThread;
     public string connectionIP = "127.0.0.1";
     public int connectionPort = 54955;
+    public GameObject spawnee;
     IPAddress localAdd;
     TcpListener listener;
     TcpClient client;
@@ -25,50 +26,6 @@ public class Server : MonoBehaviour
     Quaternion rotation; //rotation
     bool clear = false;
     bool running;
- 
-   
-    public Vector3 offsett;
-    void update()
-    {
-        transform.position = offsett;
-    }
-
-    public class spwaner : MonoBehaviour
-        {
-        public Transform spawnPos;
-        public GameObject spawnee;
-        Server sp = new Server();
-        private void Update()
-        {
-            
-            if (sp.receivedPos != Vector3.zero)
-            {
-                //clear env
-                if (sp.clear)
-                {
-                    //clear function here
-                    print("cleared");
-                    sp.clear = false;
-                }
-                if(!sp.running)
-                {
-                    //exit program or do whatever you like
-                    print("finished");
-                }
-                // you can do your things here
-                spawnPos.position = sp.receivedPos;
-                spawnPos.rotation = sp.rotation;
-                Instantiate(spawnee,spawnPos.position,spawnPos.rotation);
-                
-                sp.receivedPos = Vector3.zero;
-            }
-        }
-                
-   
-    }
-
-
-    
 
     private void Start()
     {
@@ -77,8 +34,13 @@ public class Server : MonoBehaviour
         mThread = new Thread(ts);
         mThread.Start();
     }
-
-    void GetInfo()
+    void spwan()
+    {
+        GameObject b = Instantiate(spawnee) as GameObject;
+        b.transform.position = receivedPos;
+        b.transform.rotation = rotation;
+    }
+   void GetInfo()
     {
         localAdd = IPAddress.Parse(connectionIP);
         listener = new TcpListener(IPAddress.Any, connectionPort);
@@ -101,6 +63,29 @@ public class Server : MonoBehaviour
         }
         listener.Stop();
     }
+    void Update()
+        {
+            print(receivedPos);
+            if (receivedPos != Vector3.zero)
+            {
+                //clear env
+                if (clear)
+                {
+                    //clear function here
+                    print("cleared");
+                    clear = false;
+                }
+                if(!running)
+                {
+                    //exit program or do whatever you like
+                    print("finished");
+                }
+               
+                // you can do your things here
+                spwan();
+                receivedPos = Vector3.zero;
+            }
+        }
 
     private void CheckFrameEnd()
     {
@@ -121,7 +106,7 @@ public class Server : MonoBehaviour
     }
 
     void ReceiveTranslation()
-    {
+     {
         NetworkStream nwStream = client.GetStream();
         byte[] buffer = new byte[client.ReceiveBufferSize];
 
