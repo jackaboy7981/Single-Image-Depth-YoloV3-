@@ -187,8 +187,8 @@ public class Server : MonoBehaviour
         // store as a Vector3
         Vector3 result = new Vector3(
             float.Parse(sArray[0]),
-            float.Parse(sArray[1]),
-            float.Parse(sArray[2]));
+            float.Parse(sArray[2]),
+            float.Parse(sArray[1]));
 
         return result;
     }
