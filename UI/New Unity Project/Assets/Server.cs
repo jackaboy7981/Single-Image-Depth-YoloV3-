@@ -41,6 +41,7 @@ public class Server : MonoBehaviour
         b.transform.rotation = rotation;
         b.transform.localScale = Size;
     }
+    
    void GetInfo()
     {
         localAdd = IPAddress.Parse(connectionIP);
@@ -73,6 +74,10 @@ public class Server : MonoBehaviour
                 if (clear)
                 {
                     //clear function here
+                     var clones = GameObject.FindGameObjectsWithTag ("clone");
+                    foreach (var clone in clones){
+                        Destroy(clone);}
+                    
                     print("cleared");
                     clear = false;
                 }
@@ -84,6 +89,7 @@ public class Server : MonoBehaviour
                
                 // you can do your things here
                 spwan();
+                print(object_catogory);
                 receivedPos = Vector3.zero;
             }
         }

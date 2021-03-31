@@ -94,7 +94,7 @@ for i in range(394):
         #receivedData = sock.recv(1024).decode("UTF-8") #receiveing data in Byte fron C#, and converting it to String
         #print(receivedData)
     time.sleep(0.48) #sleep 0.5 sec
-    sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
-    break #use this break while testing
+    #sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
+    #break #use this break while testing
     #sock.sendall("SCENE".encode("UTF-8"))
 sock.sendall("DONE".encode("UTF-8"))
