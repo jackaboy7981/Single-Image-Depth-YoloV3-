@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿                                                                                        using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -39,6 +39,7 @@ public class Server : MonoBehaviour
         GameObject b = Instantiate(spawnee) as GameObject;
         b.transform.position = receivedPos;
         b.transform.rotation = rotation;
+        b.transform.localScale = Size;
     }
    void GetInfo()
     {
