@@ -1,27 +1,18 @@
+
 import socket
 import time
 import math
+#from nuscenes.nuscenes import NuScenes 
+import json
 import numpy as np
 from pyquaternion import Quaternion
-import json
-
-#setting up nuscenes
-with open("data/v1.0-mini/scene.json") as f:
-  scenes = json.load(f)
-with open("data/v1.0-mini/sample.json") as f:
-  samples = json.load(f)
-with open("data/v1.0-mini/sample_data.json") as f:
-  sample_datas = json.load(f)
-with open("data/v1.0-mini/sample_annotation.json") as f:
-  sample_annotations = json.load(f)
-with open("data/v1.0-mini/ego_pose.json") as f:
-  ego_poses = json.load(f)
-
 
 #seting up socket
 host, port = "127.0.0.1", 54955
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((host, port))
+
+#nusc = NuScenes(version='v1.0-mini', dataroot='data', verbose=True)
 
 max_height=5
 max_length=20
@@ -61,65 +52,49 @@ def convert_to_top_corner(point):
       point[1] = max_width - point[1]
       return point
 
-for scene in scenes:
-    token = scene['first_sample_token']
-    my_sample = {}
-    while token != '':
-        for sample in samples:
-            if sample['token'] == token:
-                my_sample = sample
-        sensor = 'LIDAR_TOP'
-        for sample_data in sample_datas:
-            if sample_data['token'] == my_sample['data'][sensor]:
-                lidar_top_data = sample_data
-                
-        for ego_pos in ego_poses:
-            if ego_pos['token'] == lidar_top_data['ego_pose_token']:
-                ego_pose = ego_pos 
-        sock.sendall("FRAME".encode("UTF-8"))
-        first_annos_flag = True
-        for annos in my_sample['anns']:
-            for sample_annotation in sample_annotations:
-                if sample_annotation['token'] == annos:
-                    annotation_metadata =  sample_annotation
-            
-            ego_yaw = quaternion_yaw(ego_pose['rotation']) - math.pi/2
-            cordinates = [annotation_metadata['translation'][i] - ego_pose['translation'][i] for i in range(3)]
-            cordinates[0], cordinates[1] = rotate_around_point_lowperf(cordinates[:2], ego_yaw, origin=(0, 0))
-            #cordinates = convert_to_top_corner(cordinates)
-            if cordinates[0] > max_width or cordinates[0] < - max_width or cordinates[1] > max_length or cordinates[1] < -max_length:# or (self.augment and self.check_cameraregion() == 0):
-                continue
 
-            rotation = [annotation_metadata['rotation'][i] - ego_pose['rotation'][i] for i in range(4)]
+with open('data/combined_samples.json') as f:
+    samples = json.load(f)
+for i in range(394):
+    ego_pose = samples[i]['ego_pose']
+    sock.sendall("FRAME".encode("UTF-8"))
+    first_annos_flag = True
+    for annos in samples[i]['anns']:
+        annotation_metadata =  annos
+        
+        ego_yaw = quaternion_yaw(ego_pose['rotation']) - math.pi/2
+        cordinates = [annotation_metadata['translation'][i] - ego_pose['translation'][i] for i in range(3)]
+        cordinates[0], cordinates[1] = rotate_around_point_lowperf(cordinates[:2], ego_yaw, origin=(0, 0))
+        #cordinates = convert_to_top_corner(cordinates)
+        if cordinates[0] > max_width or cordinates[0] < - max_width or cordinates[1] > max_length or cordinates[1] < -max_length:# or (self.augment and self.check_cameraregion() == 0):
+            continue
 
-            #converting list to string then to byte and sending to c#
-            transString = ','.join(map(str, cordinates)) #Converting translation list to a string, example "0,0,0"
-            sizeString = ','.join(map(str, annotation_metadata['size'])) #Converting size list to a string, example "0,0,0"
-            rotationString = ','.join(map(str, rotation)) #Converting rotation list to a string, example "0,0,0"
-            
-            #Converting string to Byte, and sending it to C#
-            if first_annos_flag == False:
-                sock.sendall("NOPE".encode("UTF-8"))
-            first_annos_flag = False
-            time.sleep(0.0001)
-            sock.sendall(sizeString.encode("UTF-8")) 
-            time.sleep(0.0001)
-            sock.sendall(rotationString.encode("UTF-8")) 
-            time.sleep(0.0001)
-            sock.sendall(annotation_metadata['category_name'].encode("UTF-8")) 
-            time.sleep(0.0001)
-            sock.sendall(transString.encode("UTF-8")) 
-            time.sleep(0.0001)
-            print(transString,sizeString,rotationString,annotation_metadata['category_name'])
+        rotation = [annotation_metadata['rotation'][i] - ego_pose['rotation'][i] for i in range(4)]
 
-            #receivedData = sock.recv(1024).decode("UTF-8") #receiveing data in Byte fron C#, and converting it to String
-            #print(receivedData)
-        token = my_sample['next']
-        time.sleep(0.48) #sleep 0.5 sec
-        sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
-        break #use this break while testing
-    #sock.sendall("SCENE".encode("UTF-8"))
+        #converting list to string then to byte and sending to c#
+        transString = ','.join(map(str, cordinates)) #Converting translation list to a string, example "0,0,0"
+        sizeString = ','.join(map(str, annotation_metadata['size'])) #Converting size list to a string, example "0,0,0"
+        rotationString = ','.join(map(str, rotation)) #Converting rotation list to a string, example "0,0,0"
+        
+        #Converting string to Byte, and sending it to C#
+        if first_annos_flag == False:
+            sock.sendall("NOPE".encode("UTF-8"))
+        first_annos_flag = False
+        time.sleep(0.0001)
+        sock.sendall(sizeString.encode("UTF-8")) 
+        time.sleep(0.0001)
+        sock.sendall(rotationString.encode("UTF-8")) 
+        time.sleep(0.0001)
+        sock.sendall(annotation_metadata['category_name'].encode("UTF-8")) 
+        time.sleep(0.0001)
+        sock.sendall(transString.encode("UTF-8")) 
+        time.sleep(0.0001)
+        print(transString,sizeString,rotationString,annotation_metadata['category_name'])
+
+        #receivedData = sock.recv(1024).decode("UTF-8") #receiveing data in Byte fron C#, and converting it to String
+        #print(receivedData)
+    time.sleep(0.48) #sleep 0.5 sec
     sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
-    print("one scn done")
-    break
+    break #use this break while testing
+    #sock.sendall("SCENE".encode("UTF-8"))
 sock.sendall("DONE".encode("UTF-8"))
