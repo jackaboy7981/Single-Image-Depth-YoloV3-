@@ -1,4 +1,4 @@
-﻿                                                                                        using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -8,6 +8,13 @@ using System.Globalization;
 using UnityEngine;
 using System;
 
+struct vehicle_chars
+{
+    public Vector3 receivedPos; //position
+    public Vector3 Size;  //size
+    public string object_catogory; //object type
+    public Quaternion rotation; //rotation
+}
 
 public class Server : MonoBehaviour
 {
@@ -18,14 +25,13 @@ public class Server : MonoBehaviour
     IPAddress localAdd;
     TcpListener listener;
     TcpClient client;
-    
+
     //these are the values
-    Vector3 receivedPos = Vector3.zero; //position
-    Vector3 Size = Vector3.zero;  //size
-    string object_catogory = ""; //object type
-    Quaternion rotation; //rotation
+    vehicle_chars[] vehicle_array = new vehicle_chars[100];
+    int vehicle_arra_size = 0;
     bool clear = false;
     bool running;
+    bool data_available = false;
 
     private void Start()
     {
@@ -34,12 +40,13 @@ public class Server : MonoBehaviour
         mThread = new Thread(ts);
         mThread.Start();
     }
-    void spwan()
+    void spwan(vehicle_chars annotaion)
     {
+        
         GameObject b = Instantiate(spawnee) as GameObject;
-        b.transform.position = receivedPos;
-        b.transform.rotation = rotation;
-        b.transform.localScale = Size;
+        b.transform.position = annotaion.receivedPos;
+        b.transform.rotation = annotaion.rotation;
+        b.transform.localScale = annotaion.Size;
     }
     
    void GetInfo()
@@ -58,20 +65,24 @@ public class Server : MonoBehaviour
             {
                 break;
             }
-            ReceiveSize();
-            ReceiveRotation();
-            ReceiveCatogory();
-            ReceiveTranslation();
+            ReceiveData();
         }
         listener.Stop();
     }
     void Update()
         {
-            print(receivedPos);
-            if (receivedPos != Vector3.zero)
+            //print(vehicle_array);
+            if (data_available)
             {
-                //clear env
-                if (clear)
+            for(int i=1;i<vehicle_arra_size;i++)
+            {
+                print(vehicle_array[i].Size);
+                print(vehicle_array[i].rotation);
+                print(vehicle_array[i].object_catogory);
+                print(vehicle_array[i].receivedPos);
+            }
+            //clear env
+            if (clear)
                 {
                     //clear function here
                      var clones = GameObject.FindGameObjectsWithTag ("clone");
@@ -86,11 +97,15 @@ public class Server : MonoBehaviour
                     //exit program or do whatever you like
                     print("finished");
                 }
-               
-                // you can do your things here
-                spwan();
-                print(object_catogory);
-                receivedPos = Vector3.zero;
+
+            // you can do your things here
+            for (int i = 1; i < vehicle_arra_size; i++)
+            {
+                spwan(vehicle_array[i]);
+            }
+      
+                //print(object_catogory);
+            data_available = false;
             }
         }
 
@@ -112,74 +127,36 @@ public class Server : MonoBehaviour
         }
     }
 
-    void ReceiveTranslation()
+    void ReceiveData()
      {
         NetworkStream nwStream = client.GetStream();
         byte[] buffer = new byte[client.ReceiveBufferSize];
 
         //---receiving translation Data from the Host----
         int bytesRead = nwStream.Read(buffer, 0, client.ReceiveBufferSize); //Getting data in Bytes from Python
-        string TransDataReceived = Encoding.UTF8.GetString(buffer, 0, bytesRead); //Converting byte data to string
+        string DataReceived = Encoding.UTF8.GetString(buffer, 0, bytesRead); //Converting byte data to string
 
-        if (TransDataReceived != null)
+        if (DataReceived != null)
         {
+            string[] annos = DataReceived.Split('$');
+            int i;
+            for(i=1;i<annos.Length;i++)
+            {
+                string[] items = annos[i].Split('/');
+                vehicle_array[i].Size = StringToVector3(items[0], true);
+                vehicle_array[i].rotation = StringToQuadotrion(items[1]);
+                vehicle_array[i].object_catogory = items[2];
+                vehicle_array[i].receivedPos = StringToVector3(items[3]);
+            }
             //---Using received data---
-            receivedPos = StringToVector3(TransDataReceived); //<-- assigning receivedPos value from Python
+            //receivedPos = StringToVector3(TransDataReceived); //<-- assigning receivedPos value from Python
             //print(receivedPos);
+            data_available = true;
+            vehicle_arra_size = i;
         }
     }
 
-    void ReceiveSize()
-    {
-        NetworkStream nwStream = client.GetStream();
-        byte[] buffer = new byte[client.ReceiveBufferSize];
-
-        //---receiving translation Data from the Host----
-        int bytesRead = nwStream.Read(buffer, 0, client.ReceiveBufferSize); //Getting data in Bytes from Python
-        string TransDataReceived = Encoding.UTF8.GetString(buffer, 0, bytesRead); //Converting byte data to string
-
-        if (TransDataReceived != null)
-        {
-            //---Using received data---
-            Size = StringToVector3(TransDataReceived); //<-- assigning receivedPos value from Python
-            //print(Size);
-        }
-    }
-
-    void ReceiveRotation()
-    {
-        NetworkStream nwStream = client.GetStream();
-        byte[] buffer = new byte[client.ReceiveBufferSize];
-
-        //---receiving translation Data from the Host----
-        int bytesRead = nwStream.Read(buffer, 0, client.ReceiveBufferSize); //Getting data in Bytes from Python
-        string TransDataReceived = Encoding.UTF8.GetString(buffer, 0, bytesRead); //Converting byte data to string
-
-        if (TransDataReceived != null)
-        {
-            //---Using received data---
-            rotation = StringToQuadotrion(TransDataReceived); // convert string to quadotrion
-            //print(TransDataReceived);
-        }
-    }
-
-    void ReceiveCatogory()
-    {
-        NetworkStream nwStream = client.GetStream();
-        byte[] buffer = new byte[client.ReceiveBufferSize];
-
-        //---receiving translation Data from the Host----
-        int bytesRead = nwStream.Read(buffer, 0, client.ReceiveBufferSize); //Getting data in Bytes from Python
-        string TransDataReceived = Encoding.UTF8.GetString(buffer, 0, bytesRead); //Converting byte data to string
-
-        if (TransDataReceived != null)
-        {
-            object_catogory = TransDataReceived;
-            //print(object_catogory);
-        }
-    }
-
-    public static Vector3 StringToVector3(string sVector)
+    public static Vector3 StringToVector3(string sVector, bool IsSize=false)
     {
         // Remove the parentheses
         if (sVector.StartsWith("(") && sVector.EndsWith(")"))
@@ -190,11 +167,24 @@ public class Server : MonoBehaviour
         // split the items
         string[] sArray = sVector.Split(',');
 
-        // store as a Vector3
-        Vector3 result = new Vector3(
+        Vector3 result;
+        if (IsSize)
+        {
+            result = new Vector3(
+            float.Parse(sArray[0]),
+            float.Parse(sArray[1]),
+            float.Parse(sArray[2]));
+        }
+        else
+        {
+            result = new Vector3(
             float.Parse(sArray[0]),
             float.Parse(sArray[2]),
             float.Parse(sArray[1]));
+        }
+
+        // store as a Vector3
+        
 
         return result;
     }
@@ -215,7 +205,7 @@ public class Server : MonoBehaviour
             float.Parse(sArray[0], CultureInfo.InvariantCulture.NumberFormat),
             float.Parse(sArray[1], CultureInfo.InvariantCulture.NumberFormat),
             float.Parse(sArray[2], CultureInfo.InvariantCulture.NumberFormat),
-            float.Parse(sArray[2], CultureInfo.InvariantCulture.NumberFormat));
+            float.Parse(sArray[3], CultureInfo.InvariantCulture.NumberFormat));
 
         return result;
     }
