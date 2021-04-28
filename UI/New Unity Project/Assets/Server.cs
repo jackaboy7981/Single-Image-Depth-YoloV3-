@@ -13,7 +13,7 @@ struct vehicle_chars
     public Vector3 receivedPos; //position
     public Vector3 Size;  //size
     public string object_catogory; //object type
-    public Quaternion rotation; //rotation
+    public Vector3 rotation; //rotation
 }
 
 public class Server : MonoBehaviour
@@ -45,7 +45,7 @@ public class Server : MonoBehaviour
         
         GameObject b = Instantiate(spawnee) as GameObject;
         b.transform.position = annotaion.receivedPos;
-        b.transform.rotation = annotaion.rotation;
+        b.transform.Rotate(annotaion.rotation);
         b.transform.localScale = annotaion.Size;
     }
     
@@ -76,10 +76,10 @@ public class Server : MonoBehaviour
             {
             for(int i=1;i<vehicle_arra_size;i++)
             {
-                print(vehicle_array[i].Size);
+                //print(vehicle_array[i].Size);
                 print(vehicle_array[i].rotation);
-                print(vehicle_array[i].object_catogory);
-                print(vehicle_array[i].receivedPos);
+                //print(vehicle_array[i].object_catogory);
+                //print(vehicle_array[i].receivedPos);
             }
             //clear env
             if (clear)
@@ -143,8 +143,8 @@ public class Server : MonoBehaviour
             for(i=1;i<annos.Length;i++)
             {
                 string[] items = annos[i].Split('/');
-                vehicle_array[i].Size = StringToVector3(items[0], true);
-                vehicle_array[i].rotation = StringToQuadotrion(items[1]);
+                vehicle_array[i].Size = StringToVector3(items[0]);
+                vehicle_array[i].rotation = StringToVector3(items[1]);
                 vehicle_array[i].object_catogory = items[2];
                 vehicle_array[i].receivedPos = StringToVector3(items[3]);
             }
@@ -171,9 +171,9 @@ public class Server : MonoBehaviour
         if (IsSize)
         {
             result = new Vector3(
-            float.Parse(sArray[0]),
-            float.Parse(sArray[1]),
-            float.Parse(sArray[2]));
+            float.Parse("0"),
+            float.Parse(sArray[2])+180,
+            float.Parse("0"));
         }
         else
         {

@@ -1,4 +1,3 @@
-
 import socket
 import time
 import math
@@ -17,6 +16,24 @@ sock.connect((host, port))
 max_height=5
 max_length=20
 max_width=20
+
+def quaternion_to_euler_angle_vectorized2(w, x, y, z):
+    ysqr = y * y
+
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + ysqr)
+    X = np.degrees(np.arctan2(t0, t1))
+
+    t2 = +2.0 * (w * y - z * x)
+
+    t2 = np.clip(t2, a_min=-1.0, a_max=1.0)
+    Y = np.degrees(np.arcsin(t2))
+
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (ysqr + z * z)
+    Z = np.degrees(np.arctan2(t3, t4))
+
+    return X, Y, Z
 
 def rotate_around_point_lowperf(point, radians, origin=(0, 0)):
       """Rotate a point around a given point.
@@ -69,16 +86,23 @@ for i in range(394):
         if cordinates[0] > max_width or cordinates[0] < - max_width or cordinates[1] > max_length or cordinates[1] < -max_length:# or (self.augment and self.check_cameraregion() == 0):
             continue
 
-        rotation = [annotation_metadata['rotation'][i] - ego_pose['rotation'][i] for i in range(4)]
+        #rotation = [annotation_metadata['rotation'][i] - ego_pose['rotation'][i] for i in range(4)]
+        #rotation = [0,0,0,0]
+        rotation = [0, 0, 0]
+        rotation[0], rotation[1], rotation[2] = quaternion_to_euler_angle_vectorized2(annotation_metadata['rotation'][0], annotation_metadata['rotation'][1], annotation_metadata['rotation'][2], annotation_metadata['rotation'][3])
+        ego_angle = [0, 0 ,0]
+        ego_angle[0], ego_angle[1], ego_angle[2] = quaternion_to_euler_angle_vectorized2(ego_pose['rotation'][0], ego_pose['rotation'][1], ego_pose['rotation'][2], ego_pose['rotation'][3])
+        rotation = [rotation[i] - ego_angle[i] for i in range(3)]
 
         #converting list to string then to byte and sending to c#
         transString = ','.join(map(str, cordinates)) #Converting translation list to a string, example "0,0,0"
         sizeString = ','.join(map(str, annotation_metadata['size'])) #Converting size list to a string, example "0,0,0"
         rotationString = ','.join(map(str, rotation)) #Converting rotation list to a string, example "0,0,0"
         
+        #concatenate every annotations in a scene into a single string
         ToSendString = ToSendString + "$" + sizeString + "/" + rotationString + "/" + annotation_metadata['category_name'] + "/" + transString
 
-    print(ToSendString)
+        print(rotation)
     sock.sendall(ToSendString.encode("UTF-8"))
     time.sleep(0.5) #sleep 0.5 sec
     #sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
