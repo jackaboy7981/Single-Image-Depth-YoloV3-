@@ -8,10 +8,14 @@ An AI Model capable of 3D Object detection is being being developed.Along with a
 Dataset used : https://www.nuscenes.org
 
 ## Camera View:
-<p align="center"><img src="AI/assets/surrounding.gif" width="480"\></p>
+<p align="center"><img src="AI/assets/surrounding.png" width="480"\></p>
 
-## Expected Output:
-<p align="center"><img src="AI/assets/output.gif" width="480"\></p>
+## Expected AI Output:
+<p align="center"><img src="AI/assets/output.png" width="480"\></p>
+
+## BlindSpot Monitoring UI Output
+<p align="center"><img src="AI/assets/combined.gif" width="480"\></p>
 
 ## Current Status:
-The AI Model is under development
+ -> AI Model is under development
+ -> UI beta stage reached
