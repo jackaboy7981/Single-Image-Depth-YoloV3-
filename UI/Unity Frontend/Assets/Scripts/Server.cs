@@ -6,6 +6,12 @@ using System.Text;
 using System.Threading;
 using System.Globalization;
 using UnityEngine;
+public Vector3 offsett;
+void update()
+{
+     transform.position = offsett;
+}
+using System;
 
 public class Server : MonoBehaviour
 {
@@ -21,15 +27,36 @@ public class Server : MonoBehaviour
     Vector3 Size = Vector3.zero;  //size
     string object_catogory = ""; //object type
     Quaternion rotation; //rotation
-
+    bool clear = false;
     bool running;
+    public Transform spawnPos;
+    public GameObject spawnee;
+
+
 
     private void Update()
     {
+        
         if (receivedPos != Vector3.zero)
         {
+            //clear env
+            if (clear)
+            {
+                //clear function here
+                print("cleared");
+                clear = false;
+            }
+            if(!running)
+            {
+                //exit program or do whatever you like
+                print("finished");
+            }
             // you can do your things here
+            spawnPos.position = receivedPos;
+            spawnPos.rotation = rotation;
+            Instantiate(spawnee,spawnPos.position,spawnPos.rotation);
             print(receivedPos);
+            transform.cube = (120,0,50);
             print(Size);
             print(object_catogory);
             print(rotation);
@@ -57,12 +84,35 @@ public class Server : MonoBehaviour
         running = true;
         while (running)
         {
+            CheckFrameEnd();
+            if (!running)
+            {
+                break;
+            }
             ReceiveSize();
             ReceiveRotation();
             ReceiveCatogory();
             ReceiveTranslation();
         }
         listener.Stop();
+    }
+
+    private void CheckFrameEnd()
+    {
+        NetworkStream nwStream = client.GetStream();
+        byte[] buffer = new byte[client.ReceiveBufferSize];
+
+        //---receiving translation Data from the Host----
+        int bytesRead = nwStream.Read(buffer, 0, client.ReceiveBufferSize); //Getting data in Bytes from Python
+        string CheckStr = Encoding.UTF8.GetString(buffer, 0, bytesRead); //Converting byte data to string
+        if(CheckStr == "FRAME")
+        {
+            clear = true;
+        }
+        if(CheckStr == "DONE")
+        {
+            running = false;
+        }
     }
 
     void ReceiveTranslation()
