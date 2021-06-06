@@ -1,4 +1,3 @@
-import socket
 import time
 import math
 #from nuscenes.nuscenes import NuScenes 
@@ -6,10 +5,11 @@ import json
 import numpy as np
 from pyquaternion import Quaternion
 
+import communications
+commu = communications.communications()
+
 #seting up socket
 host, port = "127.0.0.1", 54955
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect((host, port))
 
 #nusc = NuScenes(version='v1.0-mini', dataroot='data', verbose=True)
 
@@ -74,8 +74,10 @@ with open('data/combined_samples.json') as f:
     samples = json.load(f)
 for i in range(394):
     ego_pose = samples[i]['ego_pose']
-    sock.sendall("FRAME".encode("UTF-8"))
-    ToSendString = ""
+    #sock.sendall("FRAME".encode("UTF-8"))
+    commu.send_scn_end()
+    annos_list = []
+    #ToSendString = ""
     for annos in samples[i]['anns']:
         annotation_metadata =  annos
         
@@ -94,6 +96,9 @@ for i in range(394):
         ego_angle[0], ego_angle[1], ego_angle[2] = quaternion_to_euler_angle_vectorized2(ego_pose['rotation'][0], ego_pose['rotation'][1], ego_pose['rotation'][2], ego_pose['rotation'][3])
         rotation = [ego_angle[i] - rotation[i] for i in range(3)]
 
+        anno_dict = {'translation':cordinates, 'size': annotation_metadata['size'], 'rotation': rotation, 'category_name':annotation_metadata['category_name']}
+        annos_list.append(anno_dict)
+        '''
         #converting list to string then to byte and sending to c#
         transString = ','.join(map(str, cordinates)) #Converting translation list to a string, example "0,0,0"
         sizeString = ','.join(map(str, annotation_metadata['size'])) #Converting size list to a string, example "0,0,0"
@@ -103,9 +108,13 @@ for i in range(394):
         ToSendString = ToSendString + "$" + sizeString + "/" + rotationString + "/" + annotation_metadata['category_name'] + "/" + transString
 
         print(rotation)
-    sock.sendall(ToSendString.encode("UTF-8"))
+        '''
+    #sock.sendall(ToSendString.encode("UTF-8"))
+    sample_dict = {'anns':annos_list}
+    commu.send_sample(sample_dict)
     time.sleep(0.5) #sleep 0.5 sec
     #sock.sendall("DONE".encode("UTF-8")) #please delete this for final testing
     #break #use this break while testing
     #sock.sendall("SCENE".encode("UTF-8"))
-sock.sendall("DONE".encode("UTF-8"))
+#sock.sendall("DONE".encode("UTF-8"))
+#sock.close()
