@@ -92,7 +92,7 @@ for i in range(394):
         rotation[0], rotation[1], rotation[2] = quaternion_to_euler_angle_vectorized2(annotation_metadata['rotation'][0], annotation_metadata['rotation'][1], annotation_metadata['rotation'][2], annotation_metadata['rotation'][3])
         ego_angle = [0, 0 ,0]
         ego_angle[0], ego_angle[1], ego_angle[2] = quaternion_to_euler_angle_vectorized2(ego_pose['rotation'][0], ego_pose['rotation'][1], ego_pose['rotation'][2], ego_pose['rotation'][3])
-        rotation = [rotation[i] - ego_angle[i] for i in range(3)]
+        rotation = [ego_angle[i] - rotation[i] for i in range(3)]
 
         #converting list to string then to byte and sending to c#
         transString = ','.join(map(str, cordinates)) #Converting translation list to a string, example "0,0,0"
