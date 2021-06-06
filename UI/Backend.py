@@ -109,3 +109,4 @@ for i in range(394):
     #break #use this break while testing
     #sock.sendall("SCENE".encode("UTF-8"))
 sock.sendall("DONE".encode("UTF-8"))
+sock.close()
